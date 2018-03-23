@@ -1,1 +1,114 @@
+First step to create a web server is to create a network socket which can accept connection on certain TCP port. HTTP server usually listen
+on port 80 but we will use a different port 8080 for testing purpose.
+
+import java.net.ServerSocket;
+public class HTTPServer {
+   public static void main(String[] args) {
+      final ServerSocket server = new ServerSocket(8080);
+      System.out.println("Listening for connection on port 8080 ...");
+      while(true) {
+         // spin forever
+      }
+   }
+}
+
+That's enough for creating a web server in Java. Now our server is ready and listening for incoming connection on port 8080. If you connect
+to http://localhost:8080 from your browser, the connection will be established and browser will wait forever. 
+
+Now let's write code to start accepting connections. In Java, you can accept incoming connection by blocking call to accept() method as 
+below:
+final Socket client = server.accept();
+This is a blocking method and blocks until a client connect to the server. As soon as a client connects it returns the Socket object which 
+can be used to read client request and send response to client. Once you are done with client you should close this socket and get ready
+to accept new incoming connection by calling accept() again. 
+
+import java.net.ServerSocket;
+import java.net.Socket;
+public class HTTPServer {
+   public static void main(String[] args) throws Exception{
+      final ServerSocket server = new ServerSocket(8080);
+      System.out.println("Listening for connection on port 8080...");
+      while(true) {
+         final Socket client = server.accept();
+         // 1. Read HTTP request from the client socket
+         // 2. Prepare an HTTP response
+         // 3. Send HTTP response to the client
+         // 4. Close the socket
+      }
+   }
+}
+
+This is the standard HTTP Server. It doesn't need to remember previous connection, all it care for new incoming connections. This is 
+endless cycle until server is stopped. Now let's see what is coming from browser in form of HTTP request. When you connect to 
+http://localhost:8080, your browser will send a GET HTTP request to the server. You can read the content of request using InputStream 
+opened from the client socket.
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
+public class HTTPServer {
+   public static void main(String[] args) {
+      ServerSocket server = new ServerSocket(8080);
+      System.out.println("Listening for connection on port 8080...");
+      while(true) {
+         Socket clientSocket = server.accept();
+         InputStreamReader isr = new InputStreamReader(clientSocket.getInputStream());
+         BufferedReader reader = new BufferedReader(isr);
+         String line = reader.readLine();
+         while(!line.isEmpty()) {
+            System.out.println(line);
+            line = reader.readLine();
+         }
+      }
+   }
+}
+
+When you connect to this server using Firefox it will spin endlessly but on server side you will see following lines on your console:
+Listening for connection on port 8080...
+GET / HTTP/1.1
+Host: localhost:8080
+User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:36.0) Gecko/20100101 Firefox/36.0 
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8 
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate 
+Connection: keep-alive
+
+Our HTTP client(the Firefox browser) passes this text to our HTTP server written in Java. You can see that request type is GET and 
+protocol used here is HTTP/1.1.
+So now our server is not only listening for connection, but accepting it and also reading HTTP request. Now only thing remaining is to 
+send HTTP response back to the client. To keep our server simple, we will just send today's date to the client. Let's see how we can do 
+that. In order to send response, we need to get the output stream from socket and then we will write HTTP response code OK and today's 
+date into stream. 
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket; 
+import java.util.Date; 
+public class HTTPServer {
+   public static void main(String[] args) {
+      ServerSocket server = new ServerSocket(8080);
+      System.out.println("Listening for connection on port 8080...");
+      while(true) {
+         try (Socket socket = server.accept()) {
+            Date today = new Date();
+            String httpResponse = "HTTP/1.1 200 OK\r\n\r\n" + today;
+            socket.getOutputStream().write(httpResponse.getBytes("UTF-8"));
+         }
+      }
+   }
+}
+
+When you run the above program in Eclipse or from command line and connect to the http://localhost:8080 from Firefox, you will see the
+following response:
+Sun Mar 29 13:32:26 GMT+08:00 2015 
+which is today's date. It means that our HTTP Server is working properly, it is listening on port 8080, accepting connection, reading 
+request and sending response. By using try-with-resource statement of Java 7, we have also simplified our code, because socket will 
+automatically be closed by Java once you are done with response. Only limitation of this server is that it can serve one client at a 
+time. If request processing takes longer time, which is not in our case, the other connection has to wait. This problem can be solved
+by using threads or JAVA NIO non blocking selectors and channels. 
+
+
+
 
