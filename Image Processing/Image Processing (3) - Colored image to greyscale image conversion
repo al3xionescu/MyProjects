@@ -6,6 +6,7 @@ Algorithm:
 3. Replace the R, G and B value of the pixel with average (Avg) calculated in step 2.
 4. Repeat Step 1 to Step 3 for each pixels of the image.
 */
+
 import java.io.File;
 import java.io.IOException;
 import java.awt.image.BufferedImage;
