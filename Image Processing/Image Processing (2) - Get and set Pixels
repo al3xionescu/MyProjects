@@ -4,6 +4,7 @@ Pixels are the smallest unit of an image which consists of four components Alpha
 The value of all the components lie between 0 and 255 both inclusive. Zero means the component is absent and 255 means the component is 
 fully present.
 */
+
 import java.io.File;
 import java.io.IOException;
 import java.awt.image.BufferedImage;
