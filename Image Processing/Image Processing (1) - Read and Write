@@ -1,0 +1,43 @@
+/*
+1. To read and write image file we have to import the File class [ import java.io.File; ]. This class represents file and directory path 
+names in general.
+2. To handle errors we use the IOException class [ import java.io.IOException; ]
+3. To hold the image we create the BufferedImage object for that we use BufferedImage class [ import java.awt.image.BufferedImage; ]. 
+This object is used to store an image in RAM.
+4. To perform the image read write operation we will import the ImageIO class [ import javax.imageio.ImageIO;]. This class has static 
+methods to read and write an image.
+*/
+
+import java.io.File;
+import java.io.IOException;
+import java.awt.image.BufferedImage;
+import javax.iamgeio.ImageIO;
+public class MyImage  {
+   public static void main(String[] args)throws IOException
+   {
+      int width = 963;
+      int height = 640;
+      BufferedImage image = null;
+      try 
+      {
+         File input_file = new File("G:\\Inp.jpg");
+         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+         image = ImageIO.read(input_file);
+         System.out.println("Reading complete.");
+      }
+      catch(IOException e) 
+      {
+         System.out.println("Error: "+e);
+      }
+      try
+      {
+         File output_file = new File("G:\\Out.jpg");
+         ImageIO.write(image, "jpg", output_file);
+         System.out.println("Writing complete.");
+      }
+      catch(IOException e)
+      {
+         System.out.println("Error: "+e);
+      }
+   }
+}
