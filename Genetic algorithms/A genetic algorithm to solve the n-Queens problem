@@ -1,1 +1,141 @@
+/*
+The N-Queens problem is the placement of queens on a chess board so that none are threatened – no single queen share a common row, 
+column, or diagonal.
+*/
 
+/*Generate a population of solutions representing the positions of the N number of queens on the chessboard. Solutions (“chromosomes”) are 
+represented using integer arrays with N number of row positions. Each row position is generated randomly for each column, representing 
+a configuration of queens on the board. For example for a board of size 8×8, the array [6, 3, 1, 7, 4, 8, 5, 2] represents one possible 
+solution in the population.*/
+
+#pragma once
+#include <memory>
+ 
+class Chromosome
+{
+public:
+    Chromosome(const int& size);
+    ~Chromosome(void);
+ 
+    void SetChromosome( const int& index, const unsigned char& value );
+    unsigned char GetChromosome( const int& index );
+    float GetChromosomeFitness();
+     
+    void SetFitness( const float& fitness );
+    int size() const;
+    void Print( const int& index ) const;
+ 
+private:
+ 
+    std::unique_ptr<int[]> chr;
+    float fitness;
+    int chrSize;
+    bool constraintViolated;
+};
+
+Once we have generated the initial population of integer arrays representing the queen positions, we apply crossover to arbitrary
+selected pairs of solutions in the population, at a given probability, the crossover probability. Two solutions (‘parents’) are selected,
+and crossover is applied between randomly selected portions of the arrays, in order to produce two new (and possibly better) ‘child’ 
+solutions. Here is how the GeneticAlgorithm class implements the two-point crossover utilized in this algorithm:
+
+void GeneticAlgorithm::Crossover()
+{
+    for ( int i = 0; i < populationSize; i++ )
+    {
+        int r = rand() % 100;
+ 
+        if ( r < crossoverRate )
+        {
+            // Select random pair for crossover
+            int index1 = rand() % populationSize;
+            int index2 = index1 < populationSize - 1 ? index1 + 1 : 0;
+ 
+            // Get crossover points
+            int point1 = rand() % chromosomeSize;
+            int point2 = rand() % chromosomeSize;
+ 
+            while ( point1 == point2 )
+            {
+                point2 = rand() % chromosomeSize;
+            }
+ 
+            if ( point1 > point2 )
+            {
+                int tmp = point1;
+                point1 = point2;
+                point2 = tmp;
+            }
+ 
+            // Do 2-point crossover
+            pop.Crossover( index1, index2, point1, point2 );
+        }
+    }
+}
+
+With a probability typically much smaller than that of crossover, mutation is applied to individually selected array values in 
+order to modify existing solutions. Here is how mutation is applied to individually selected chromosome members:
+
+void Population::Mutation( const int& index, const int& mutationRate )
+{
+    Chromosome* chr = pop.at( index );
+ 
+    for ( int i = 0; i < chrSize; i++ )
+    {
+        int r = rand() % 1000;
+ 
+        if ( r < mutationRate && i != bestMember)
+        {
+            unsigned char value = chr->GetChromosome( i );
+            unsigned char new_value = rand() % chr->size();
+             
+            while (new_value == value)
+            {
+                new_value = rand() % chr->size();
+            }
+             
+            chr->SetChromosome( i, new_value );  
+        }
+    }
+}
+
+Using a mechanism based on survival of the fittest, we select members of the population for inclusion into the new generation based on 
+their ‘fitness’. For this problem, fitness is inversely proportional to the number of times each queen is threatened by the other queens
+on the board ie fitness = 1.0 / ( 1.0 + number_threats ). A solution where there are zero conflicts will have a perfect fitness score of
+1.0. For this implementation a binary ‘tournament’ selection mechanism was used whereby arbitrarily selected pairs of solutions are 
+selected, the one with the greater fitness being the winner and selected to join the subsequent population.
+
+void GeneticAlgorithm::Select()
+{
+    // For each pair of chromosomes selected
+    int i = 0;
+ 
+    while ( i < tournamentSize )
+    {   
+        // Get the chromosome pair for tournament selection
+        int index1 = rand() % populationSize;
+        int index2 = rand() % populationSize;
+ 
+        while ( index1 == index2 )
+        {
+            index2 = rand() % populationSize;
+        }
+ 
+        float fitness1 = fabs( pop.GetChromosomeFitness( index1 ) );
+        float fitness2 = fabs( pop.GetChromosomeFitness( index2 ) );                
+ 
+        if ( fitness1 > fitness2 )
+        {
+            // Copy chromosome 1 elements into chromosome 2
+            pop.CopyChromosome( index1, index2 );           
+        }
+        else if ( fitness1 < fitness2 )
+        {
+            // Copy chromosome 2 elements into chromosome 1
+            pop.CopyChromosome( index2, index1 );           
+        }
+ 
+        i++;
+    }
+}
+
+Keep repeating these steps (crossover/mutation/evaluation/selection) until no further improvement is found.
