@@ -1,0 +1,15 @@
+Genetic Algorithm (GA) is a search-based optimization technique based on the principles of Genetics and Natural Selection. It is 
+frequently used to find optimal or near-optimal solutions to difficult problems which otherwise would take a lifetime to solve. It is 
+frequently used to solve optimization problems, in research, and in machine learning.
+
+Advantages of GAs:
+  - Does not require any derivative information (which may not be available for many real-world problems)
+  - Provides a list of “good” solutions and not just a single solution
+  - Always gets an answer to the problem, which gets better over the time
+  - Has very good parallel capabilities
+
+Limitations of GAs:
+  - If not implemented properly, the GA may not converge to the optimal solution
+  - GAs are not suited for all problems, especially problems which are simple and for which derivative information is available
+  - Being stochastic, there are no guarantees on the optimality or the quality of the solution
+  
